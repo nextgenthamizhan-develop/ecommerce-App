@@ -3,29 +3,41 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useShop } from '../context/ShopContext';
 import { 
   ShoppingBag, Heart, Search, User, LogOut, 
-  Menu, X, Sparkles, ChevronDown, ShieldCheck 
+  Menu, X, ChevronDown, ShieldCheck 
 } from 'lucide-react';
 
+// Direct Asset Import (Vite build & dev server-il 100% load aagum)
+import logoImg from '../assets/logo.png';
+
 export default function Navbar() {
+  const shopData = useShop() || {};
   const { 
-    user, 
-    logoutUser, 
-    adminUser, 
-    cart, 
-    wishlist, 
-    currency, 
-    setCurrency, 
-    CURRENCIES, 
-    searchQuery, 
-    setSearchQuery 
-  } = useShop();
+    user = null, 
+    logoutUser = () => {}, 
+    adminUser = null, 
+    cart = [], 
+    wishlist = [], 
+    currency = 'USD', 
+    setCurrency = () => {}, 
+    CURRENCIES = { USD: { symbol: '$' } }, 
+    searchQuery = '', 
+    setSearchQuery = () => {} 
+  } = shopData;
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const navigate = useNavigate();
 
-  const cartCount = cart.reduce((sum, item) => sum + (item.qty || 1), 0);
-  const wishlistCount = wishlist.length;
+  const safeCart = Array.isArray(cart) ? cart : [];
+  const safeWishlist = Array.isArray(wishlist) ? wishlist : [];
+  const cartCount = safeCart.reduce((sum, item) => sum + (item.qty || 1), 0);
+  const wishlistCount = safeWishlist.length;
+
+  const localUser = JSON.parse(localStorage.getItem('user_session') || 'null');
+  const currentUser = user || localUser;
+
+  const localAdmin = JSON.parse(localStorage.getItem('admin_session') || 'null');
+  const currentAdmin = adminUser || localAdmin;
 
   const handleLogout = async () => {
     await logoutUser();
@@ -38,37 +50,37 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-4">
           
-          {/* Brand Logo */}
-          <Link to="/" className="flex items-center gap-2 shrink-0">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-violet-600 to-indigo-600 flex items-center justify-center shadow-md shadow-indigo-600/30">
-              <Sparkles size={18} className="text-cyan-300" />
-            </div>
+          {/* BRAND LOGO IMAGE & NAME */}
+          <Link to="/" className="flex items-center gap-2.5 shrink-0">
+            <img 
+              src={logoImg} 
+              alt="Trending Dart" 
+              className="w-10 h-10 object-contain rounded-full bg-white p-0.5 border border-slate-200 shadow-sm"
+            />
             <div>
               <span className="text-lg font-black tracking-wider text-slate-900 block leading-tight">
-                VEXORA
+                TRENDING <span className="text-orange-500">DART</span>
               </span>
-              <span className="text-[9px] font-mono text-indigo-600 font-bold uppercase tracking-widest block">
-                FLAGSHIP STORE
+              <span className="text-[9px] font-mono text-slate-500 font-bold uppercase tracking-widest block">
+                Discover What's Trending
               </span>
             </div>
           </Link>
 
-          {/* Search Bar */}
+          {/* SEARCH BAR */}
           <div className="hidden md:flex flex-1 max-w-md relative">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
             <input
               type="text"
-              placeholder="Search devices, accessories, headphones..."
+              placeholder="Search trending products, home organizers..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-slate-100 hover:bg-slate-50 focus:bg-white border border-transparent focus:border-indigo-500 rounded-xl text-xs transition-all focus:outline-none"
+              className="w-full pl-10 pr-4 py-2 bg-slate-100 hover:bg-slate-50 focus:bg-white border border-transparent focus:border-orange-500 rounded-xl text-xs transition-all focus:outline-none"
             />
           </div>
 
-          {/* Controls */}
+          {/* CONTROLS */}
           <div className="flex items-center gap-2 sm:gap-3">
-            
-            {/* Currency Selector */}
             <select
               value={currency}
               onChange={(e) => setCurrency(e.target.value)}
@@ -79,57 +91,53 @@ export default function Navbar() {
               ))}
             </select>
 
-            {/* Wishlist */}
             <Link
               to="/wishlist"
-              className="p-2 text-slate-600 hover:text-rose-500 hover:bg-rose-50 rounded-xl relative transition-colors"
+              className="p-2 text-slate-600 hover:text-orange-500 hover:bg-orange-50 rounded-xl relative transition-colors"
               title="Wishlist"
             >
               <Heart size={20} />
               {wishlistCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center">
                   {wishlistCount}
                 </span>
               )}
             </Link>
 
-            {/* Cart */}
             <Link
               to="/cart"
-              className="p-2 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl relative transition-colors"
+              className="p-2 text-slate-600 hover:text-orange-600 hover:bg-orange-50 rounded-xl relative transition-colors"
               title="Cart"
             >
               <ShoppingBag size={20} />
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-indigo-600 text-white text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 bg-orange-600 text-white text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center">
                   {cartCount}
                 </span>
               )}
             </Link>
 
-            {/* User Profile Or Sign In Button */}
-            {user && (user.email || user.name) ? (
+            {currentUser && (currentUser.email || currentUser.name) ? (
               <div className="relative">
                 <button
                   type="button"
                   onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                  className="flex items-center gap-2 p-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 transition-all text-xs font-bold text-slate-800"
+                  className="flex items-center gap-2 p-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 transition-all text-xs font-bold text-slate-800 cursor-pointer"
                 >
-                  <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs font-black uppercase">
-                    {(user.name || user.email || 'U').charAt(0)}
+                  <div className="w-7 h-7 rounded-lg bg-orange-500 text-white flex items-center justify-center text-xs font-black uppercase">
+                    {(currentUser.name || currentUser.email || 'U').charAt(0)}
                   </div>
                   <span className="hidden sm:inline-block max-w-[100px] truncate">
-                    {user.name || user.email.split('@')[0]}
+                    {currentUser.name || currentUser.email.split('@')[0]}
                   </span>
                   <ChevronDown size={14} className="text-slate-400" />
                 </button>
 
-                {/* Dropdown Menu */}
                 {userDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-slate-100 py-2 z-50">
                     <div className="px-4 py-2 border-b border-slate-100">
-                      <p className="text-xs font-bold text-slate-900 truncate">{user.name || 'User'}</p>
-                      <p className="text-[10px] text-slate-400 truncate">{user.email}</p>
+                      <p className="text-xs font-bold text-slate-900 truncate">{currentUser.name || 'User'}</p>
+                      <p className="text-[10px] text-slate-400 truncate">{currentUser.email}</p>
                     </div>
 
                     <Link
@@ -140,11 +148,11 @@ export default function Navbar() {
                       <User size={14} /> My Profile
                     </Link>
 
-                    {adminUser && (
+                    {currentAdmin && (
                       <Link
                         to="/admin/dashboard"
                         onClick={() => setUserDropdownOpen(false)}
-                        className="flex items-center gap-2 px-4 py-2 text-xs font-semibold text-indigo-600 hover:bg-indigo-50 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 text-xs font-semibold text-orange-600 hover:bg-orange-50 transition-colors"
                       >
                         <ShieldCheck size={14} /> Admin Panel
                       </Link>
@@ -153,7 +161,7 @@ export default function Navbar() {
                     <button
                       type="button"
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-rose-500 hover:bg-rose-50 transition-colors text-left border-t border-slate-100 mt-1"
+                      className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-rose-500 hover:bg-rose-50 transition-colors text-left border-t border-slate-100 mt-1 cursor-pointer"
                     >
                       <LogOut size={14} /> Sign Out
                     </button>
@@ -163,18 +171,17 @@ export default function Navbar() {
             ) : (
               <Link
                 to="/login"
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-600/20 transition-all"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold shadow-md shadow-orange-500/20 transition-all cursor-pointer"
               >
                 <User size={14} />
                 <span>Sign In</span>
               </Link>
             )}
 
-            {/* Mobile Menu Toggle */}
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-xl"
+              className="md:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
             >
               {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
@@ -182,7 +189,6 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Mobile View */}
         {mobileMenuOpen && (
           <div className="md:hidden py-3 border-t border-slate-100 space-y-2">
             <div className="relative">
@@ -195,10 +201,10 @@ export default function Navbar() {
                 className="w-full pl-10 pr-4 py-2 bg-slate-100 rounded-xl text-xs focus:outline-none"
               />
             </div>
-            {user && (
+            {currentUser && (
               <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-bold">
-                <span className="text-slate-600">{user.email}</span>
-                <button onClick={handleLogout} className="text-rose-500">Sign Out</button>
+                <span className="text-slate-600">{currentUser.email}</span>
+                <button onClick={handleLogout} className="text-rose-500 cursor-pointer">Sign Out</button>
               </div>
             )}
           </div>

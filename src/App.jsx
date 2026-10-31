@@ -17,7 +17,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 
 export default function App() {
   const location = useLocation();
-  // Admin pages-ல் public Navbar மற்றும் Footer தேவையில்லை என்பதால் மறைக்கிறோம்
+  
   const isAdminRoute = location.pathname.startsWith('/admin');
 
   return (
